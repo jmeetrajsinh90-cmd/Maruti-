@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Maruti Suzuki Portal</title>
+
+  <!-- ✅ CSS is embedded here so you only need HTML + JS files -->
+  <style>
+    /* RESET */
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    img { max-width: 100%; display: block; }
+    :root{
+      --bg:#0b1020; --card:#11162a; --muted:#a7b0c0; --text:#e9eef6;
+      --brand:#2ea7ff; --brand-2:#00d4ff; --accent:#36d399; --danger:#ff6b6b;
+      --border:rgba(255,255,255,0.08);
+    }
+
+    /* BASE */
+    body{
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      color: var(--text);
+      background: radial-gradient(1200px 600px at 10% -10%, #18244a 0%, #0b1020 50%) fixed;
+      line-height: 1.55;
+    }
+    h1, h2, h3, h4 { margin: 0 0 .5rem; line-height: 1.2; }
+    .section { padding: 2.5rem 1.25rem; max-width: 1100px; margin: 0 auto; }
+    p { color: var(--muted); }
+
+    /* NAVBAR */
+    .site-header{ position: sticky; top: 0; z-index: 50; backdrop-filter: blur(8px); }
+    .navbar{
+      display:flex; align-items:center; justify-content:space-between;
+      gap:1rem; padding: .9rem 1rem; border-bottom: 1px solid var(--border);
+      background: rgba(11,16,32,.6);
+    }
+    .logo{ font-weight: 800; letter-spacing:.3px; }
+    .nav-links{ display:flex; list-style:none; gap:.75rem; padding:0; margin:0; align-items:center; }
+    .nav-links a{
+      color: var(--text); text-decoration:none; padding:.5rem .75rem; border-radius: .6rem;
+      border:1px solid transparent;
+    }
+    .nav-links a:hover, .nav-links a.active{
+      background: linear-gradient(90deg, rgba(46,167,255,.2), rgba(0,212,255,.18));
+      border-color: var(--border);
+    }
+    .menu-toggle{ display:none; font-size:1.5rem; color:var(--text); background:none; border:none; }
+
+    /* User badge + logout in navbar */
+    .nav-user{
+      display:none; align-items:center; gap:.5rem; margin-left:.25rem;
+    }
+    .user-badge{
+      display:inline-block; padding:.35rem .6rem; border-radius:.6rem;
+      background: linear-gradient(90deg, rgba(46,167,255,.18), rgba(0,212,255,.12));
+      border:1px solid var(--border); color:#eaf6ff; font-weight:700; font-size:.9rem;
+    }
+    .logout-link{
+      color:#ffb3b3; text-decoration:none; padding:.4rem .55rem; border-radius:.5rem; border:1px solid var(--border);
+    }
+    .logout-link:hover{ background: rgba(255,255,255,.06); }
+
+    /* LAYOUT */
+    .page{ display:none; }
+    .page.active{ display:block; animation: fadeIn .35s ease-in; }
+    @keyframes fadeIn{ from{ opacity: 0; transform: translateY(6px);} to{ opacity:1; transform:none;} }
+
+    .hero{
+      display:grid; grid-template-columns: 1.2fr 1fr; gap:1.25rem;
+      align-items:center; padding: 1.5rem 1.25rem; max-width:1100px; margin: 1rem auto 0;
+    }
+    .hero-text h1{ font-size: 2.25rem; background:linear-gradient(90deg,var(--brand),var(--brand-2));
+      -webkit-background-clip:text; background-clip:text; color:transparent; }
+    .hero img{ border-radius: 1rem; border: 1px solid var(--border); }
+
+    /* CARDS */
+    .card-grid{
+      display:grid; grid-template-columns: repeat(4,1fr); gap:1rem; margin-top:1rem;
+    }
+    .card{
+      background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.02));
+      border:1px solid var(--border); border-radius: 1rem; padding: .9rem;
+      box-shadow: 0 10px 30px rgba(0,0,0,.25);
+    }
+    .card h3{ margin-top:.6rem; }
+    .highlight-cards{ display:grid; grid-template-columns: repeat(3,1fr); gap:1rem; margin-top:1rem; }
+    .highlight{
+      background: linear-gradient(180deg, rgba(54,211,153,.12), rgba(54,211,153,.05));
+      border:1px solid var(--border); border-radius: .9rem; padding: 1rem;
+    }
+
+    /* TABLES */
+    .table-wrap{ overflow-x:auto; border-radius: .75rem; border:1px solid var(--border); }
+    .table{ width:100%; border-collapse: collapse; min-width: 680px; background: rgba(255,255,255,0.02); }
+    .table th, .table td{ padding:.8rem .9rem; text-align:left; border-bottom:1px solid var(--border); }
+    .table thead th{
+      position:sticky; top:0; background: linear-gradient(90deg, rgba(46,167,255,.18), rgba(0,212,255,.12));
+      color: #eaf6ff;
+    }
+    .table tbody tr:nth-child(even){ background: rgba(255,255,255,0.02); }
+
+    /* FORMS */
+    .form{ display:grid; gap: .9rem; }
+    .grid-2{ grid-template-columns: repeat(2,1fr); }
+    .grid-3{ grid-template-columns: repeat(3,1fr); align-items: end; }
+    .form input, .form select, .form textarea{
+      width:100%; padding:.75rem .8rem; background:#0e1530; color:var(--text);
+      border:1px solid var(--border); border-radius:.6rem;
+    }
+    .form label{ color:#dfe8f6; font-size:.95rem; display:grid; gap:.4rem; }
+    .btn{
+      background: linear-gradient(90deg, var(--brand), var(--brand-2));
+      color:#041023; border:none; padding:.8rem 1rem; border-radius:.7rem; cursor:pointer; font-weight:700;
+    }
+    .btn.wide{ grid-column: 1/-1; }
+    .msg{ margin-top:.3rem; color: var(--accent); }
+
+    .kpi{ display:inline-grid; justify-items:center; margin-right:1.2rem; padding:.6rem 1rem;
+      background: rgba(255,255,255,.03); border:1px solid var(--border); border-radius:.6rem; }
+    .kpi span{ font-size:1.2rem; font-weight:800; }
+
+    /* TIMELINE */
+    .timeline{ position:relative; }
+    .timeline-list{ list-style:none; margin:1rem 0 0; padding:0; }
+    .timeline-list li{ padding:.6rem 0 .6rem 1.2rem; border-left: 2px dashed var(--brand); position:relative; }
+    .timeline-list li span{
+      position:absolute; left:-.8rem; top:.65rem; font-weight:800; background:var(--bg); padding:.1rem .35rem; border-radius:.4rem;
+      border:1px solid var(--border);
+    }
+
+    /* FIGURE */
+    .figure{ margin-top:1rem; }
+    .figure img{ border-radius: .8rem; border:1px solid var(--border); }
+    .figure figcaption{ color: var(--muted); font-size:.9rem; margin-top:.5rem; }
+
+    /* STEPS */
+    .steps ol{ margin-left: 1.25rem; }
+    .testimonial{
+      margin-top:1rem; padding:1rem; border:1px solid var(--border); border-radius:.8rem;
+      background: linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.02));
+    }
+    blockquote{ margin:0 0 .4rem; color:#eaf6ff; }
+
+    /* AUTH toggle small additions (keeps theme) */
+    .auth-toggle{ display:flex; gap:.5rem; margin-bottom:.9rem; }
+    .btn.tab{
+      background: rgba(255,255,255,0.06);
+      color: var(--text);
+      border:1px solid var(--border);
+    }
+    .btn.tab.active{
+      background: linear-gradient(90deg, var(--brand), var(--brand-2));
+      color:#041023;
+    }
+
+    /* FOOTER */
+    .site-footer{ text-align:center; padding:1.25rem; color:var(--muted); border-top: 1px solid var(--border); }
+
+    /* RESPONSIVE */
+    @media (max-width: 980px){
+      .hero{ grid-template-columns: 1fr; }
+      .card-grid{ grid-template-columns: repeat(2,1fr); }
+      .grid-3{ grid-template-columns: 1fr; }
+      .grid-2{ grid-template-columns: 1fr; }
+      .highlight-cards{ grid-template-columns: 1fr; }
+      .menu-toggle{ display:block; }
+      .nav-links{
+        position: fixed; right: -100%; top: 56px; width: 80%; height: calc(100% - 56px);
+        background: rgba(11,16,32,.95); padding: 1rem; flex-direction: column; gap:.4rem; transition: right .25s ease;
+      }
+      .nav-links.active{ right: 0; }
+      .nav-user{ margin-top:.5rem; }
+    }
+  </style>
+</head>
+<body>
+  <!-- NAVBAR -->
+  <header class="site-header">
+    <nav class="navbar">
+      <div class="logo">Maruti Suzuki Portal</div>
+      <ul class="nav-links" id="navLinks">
+        <li><a href="#" data-page="home" class="active">Home</a></li>
+        <li><a href="#" data-page="history">Our History</a></li>
+        <li><a href="#" data-page="sales">Sales</a></li>
+        <li><a href="#" data-page="service">Service</a></li>
+        <li><a href="#" data-page="finance">Finance</a></li>
+        <li><a href="#" data-page="truevalue">True Value</a></li>
+
+        <!-- ✅ merged Auth link -->
+        <li id="authNavItem"><a href="#" data-page="auth">Login / Signup</a></li>
+
+        <!-- ✅ username + logout (hidden until logged in) -->
+        <li class="nav-user" id="navUserWrap">
+          <span class="user-badge" id="navUserName"></span>
+          <a href="#" class="logout-link" id="logoutBtn">Logout</a>
+        </li>
+      </ul>
+      <button class="menu-toggle" id="menuToggle" aria-label="Open menu">☰</button>
+    </nav>
+  </header>
+
+  <main>
+    <!-- HOME -->
+    <section id="home" class="page active">
+      <section class="hero">
+        <div class="hero-text">
+          <h1>ARENA</h1>
+          <h2>PHILOSOPHY</h2>
+          <p>
+            Welcome. To a world created for the young. The ones who seek innovation with passion.<br><br>
+            Welcome. To the start of a beautiful love story. Where you meet the car of your dreams in its full glory.<br><br>
+            Welcome. To the heart of choices. Your favourite colour, style or accessories, we hear your voices.
+          </p>
+        </div>
+        <img src="https://images.unsplash.com/photo-1511919884226-fd3cad34687c?q=80&w=1600&auto=format&fit=crop" alt="Maruti Suzuki showroom banner" />
+      </section>
+
+      <section class="section">
+        <h2>Our Range</h2>
+        <div class="card-grid">
+          <article class="card">
+            <img src="https://images.unsplash.com/photo-1518558401559-3b7f8511cdbc?q=80&w=1200&auto=format&fit=crop" alt="Hatchback" />
+            <h3>Hatchbacks</h3>
+            <p>Swift • WagonR • Celerio • Ignis • Alto</p>
+          </article>
+          <article class="card">
+            <img src="https://images.unsplash.com/photo-1503376780353-7e6692767b70?q=80&w=1200&auto=format&fit=crop" alt="Sedan" />
+            <h3>Sedans</h3>
+            <p>Ciaz • Dzire</p>
+          </article>
+          <article class="card">
+            <img src="https://images.unsplash.com/photo-1549921296-3b4a4f9c6b06?q=80&w=1200&auto=format&fit=crop" alt="SUV" />
+            <h3>SUVs</h3>
+            <p>Brezza • Grand Vitara • Fronx</p>
+          </article>
+          <article class="card">
+            <img src="https://images.unsplash.com/photo-1549923746-c502d488b3ea?q=80&w=1200&auto=format&fit=crop" alt="Vans" />
+            <h3>Vans & LCV</h3>
+            <p>Eeco • Super Carry</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="section">
+        <h2>Our Sales (Snapshot)</h2>
+        <div class="table-wrap">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Category: Sub.segment</th>
+                <th>Models</th>
+                <th>March</th>
+                <th>April–March</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td>A: Mini</td><td>Alto, S.Presso</td><td>15,491</td><td>226,159</td></tr>
+              <tr><td>A: Compact</td><td>Baleno, Celerio, Ignis, Swift, WagonR</td><td>82,314</td><td>719,647</td></tr>
+              <tr><td>A: Mid-Size</td><td>Ciaz</td><td>1,834</td><td>13,852</td></tr>
+              <tr><td>B: Utility Vehicles</td><td>Ertiga, Brezza, XL6</td><td>25,001</td><td>229,101</td></tr>
+              <tr><td>C: Vans</td><td>Eeco</td><td>9,221</td><td>105,081</td></tr>
+              <tr><td>LCV</td><td>Super Carry</td><td>3,797</td><td>29,556</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="charts">
+          <canvas id="homeTrend" width="720" height="360" aria-label="Sales trend line chart"></canvas>
+        </div>
+      </section>
+    </section>
+
+    <!-- HISTORY -->
+    <section id="history" class="page">
+      <section class="section">
+        <h1>Our History</h1>
+        <p>
+          Maruti Suzuki India Limited, formerly known as Maruti Udyog Limited, was established in 1981 as a joint venture
+          between the Government of India and Suzuki Motor Corporation, Japan. The company’s first car, the Maruti 800, was
+          launched in 1983 and revolutionized the Indian automotive industry by making affordable cars accessible to the masses.
+        </p>
+        <p>
+          Over the decades, Maruti Suzuki expanded its portfolio with popular models like Alto, Swift, Baleno, WagonR, Celerio,
+          and many more. With a strong focus on quality, affordability, and customer satisfaction, Maruti Suzuki became India’s
+          largest car manufacturer and continues to hold the leadership position in the market.
+        </p>
+        <p>
+          Today, Maruti Suzuki operates with a wide network of dealerships and service centers across India, offering vehicles
+          that meet diverse needs — from entry-level hatchbacks to premium sedans and SUVs. With innovation, trust, and value at
+          its core, Maruti Suzuki remains the most preferred automobile brand for millions of Indians.
+        </p>
+      </section>
+
+      <section class="section timeline">
+        <h2>Milestones Timeline</h2>
+        <ul class="timeline-list">
+          <li><span>1981</span> Company founded as Maruti Udyog Limited.</li>
+          <li><span>1983</span> Launch of the iconic Maruti 800.</li>
+          <li><span>2000s</span> Expansion with Alto, WagonR, Swift; rapid dealership growth.</li>
+          <li><span>2010s</span> Nexa channel launch; premium models & safety features.</li>
+          <li><span>2020s</span> SUVs like Brezza & Grand Vitara; focus on tech, safety and efficiency.</li>
+        </ul>
+        <figure class="figure">
+          <img src="https://images.unsplash.com/photo-1525609004556-c46c7d6cf023?q=80&w=1600&auto=format&fit=crop" alt="Historic factory line" />
+          <figcaption>From Maruti 800 to modern SUVs — a journey of trust and innovation.</figcaption>
+        </figure>
+      </section>
+    </section>
+
+    <!-- SALES -->
+    <section id="sales" class="page">
+      <section class="section">
+        <h1>PRESS RELEASE</h1>
+        <h3>01 May 2024 — Maruti Suzuki sales in April 2024</h3>
+        <p>
+          Maruti Suzuki India Limited sold a total of <strong>168,089</strong> units. Domestic sales: <strong>140,448</strong>,
+          sales to other OEM: <strong>5,481</strong>, exports: <strong>22,160</strong>. For FY 2023–24, the Company posted its
+          highest ever total sales of <strong>2,135,323</strong> units.
+        </p>
+      </section>
+
+      <section class="section">
+        <h2>Category-wise (Snapshot)</h2>
+        <div class="table-wrap">
+          <table class="table">
+            <thead>
+              <tr><th>Category</th><th>Models</th><th>March</th><th>April–March</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>A: Mini</td><td>Alto, S.Presso</td><td>15,491</td><td>226,159</td></tr>
+              <tr><td>A: Compact</td><td>Baleno, Celerio, Swift, WagonR</td><td>82,314</td><td>719,647</td></tr>
+              <tr><td>A: Mid-Size</td><td>Ciaz</td><td>1,834</td><td>13,852</td></tr>
+              <tr><td>B: Utility</td><td>Ertiga, Brezza, XL6</td><td>25,001</td><td>229,101</td></tr>
+              <tr><td>C: Vans</td><td>Eeco</td><td>9,221</td><td>105,081</td></tr>
+              <tr><td>LCV</td><td>Super Carry</td><td>3,797</td><td>29,556</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="charts">
+          <canvas id="salesBar" width="720" height="360" aria-label="Sales by category bar chart"></canvas>
+        </div>
+
+        <div class="highlight-cards">
+          <div class="highlight">
+            <h4>Best-selling segment</h4>
+            <p>Compact (Baleno, Swift, WagonR)</p>
+          </div>
+          <div class="highlight">
+            <h4>Exports</h4>
+            <p>22,160 units in April 2024</p>
+          </div>
+          <div class="highlight">
+            <h4>FY 2023–24</h4>
+            <p>Highest ever 2.13 million+ total sales</p>
+          </div>
+        </div>
+      </section>
+    </section>
+
+    <!-- SERVICE -->
+    <section id="service" class="page">
+      <section class="section">
+        <h1>Services</h1>
+        <p>
+          Giving your car the service it deserves, Maruti Suzuki Service has an extensive network across 1800+ cities.
+          Book at your nearest centre and enjoy certified technicians, genuine parts, transparent evaluation, and
+          technology-driven solutions.
+        </p>
+      </section>
+
+      <section class="section card-grid">
+        <article class="card">
+          <h3>General Service</h3>
+          <p>Periodic maintenance, multi-point checks, genuine consumables.</p>
+        </article>
+        <article class="card">
+          <h3>Roadside Assistance</h3>
+          <p>24×7 support for breakdowns, towing, minor on-spot fixes.</p>
+        </article>
+        <article class="card">
+          <h3>Insurance</h3>
+          <p>Cashless claims, easy renewals, quick processing with partners.</p>
+        </article>
+        <article class="card">
+          <h3>Extended Warranty</h3>
+          <p>Peace of mind beyond standard warranty terms.</p>
+        </article>
+      </section>
+
+      <section class="section form-wrap">
+        <h2>Book a Service</h2>
+        <form id="serviceForm" class="form">
+          <div class="grid-2">
+            <label>Full Name
+              <input type="text" id="svcName" required />
+            </label>
+            <label>Car Model
+              <input type="text" id="svcModel" placeholder="e.g., Swift VXi" required />
+            </label>
+          </div>
+          <div class="grid-2">
+            <label>Preferred Date
+              <input type="date" id="svcDate" required />
+            </label>
+            <label>Service Type
+              <select id="svcType" required>
+                <option value="">Select…</option>
+                <option>General Service</option>
+                <option>Running Repair</option>
+                <option>Insurance Claim</option>
+                <option>Roadside Assistance</option>
+              </select>
+            </label>
+          </div>
+          <label>Additional Notes
+            <textarea id="svcNotes" rows="3"></textarea>
+          </label>
+          <button type="submit" class="btn">Submit Booking</button>
+          <p id="svcMsg" class="msg"></p>
+        </form>
+      </section>
+    </section>
+
+    <!-- FINANCE -->
+    <section id="finance" class="page">
+      <section class="section">
+        <h1>What is the Easiest Way to Finance Your Car?</h1>
+        <p>
+          Maruti Suzuki Smart Finance is India’s first OEM platform for easy car loan applications. Apply online, compare
+          offers, customise EMIs, and get quick approvals.
+        </p>
+        <h2>The Car Loan Procedure</h2>
+        <ul class="list">
+          <li>Pre-Approved Car Loans</li>
+          <li>Multiple Bank Options</li>
+          <li>Customisable EMI</li>
+        </ul>
+        <p>
+          A seamless 4-step process with complete transparency on fees, charges, sanction letters, and offers. Choose from
+          multiple financers at your convenience.
+        </p>
+      </section>
+
+      <section class="section">
+        <h2>EMI Calculator</h2>
+        <form id="emiForm" class="form grid-3">
+          <label>Loan Amount (₹)
+            <input type="number" id="loanAmt" value="800000" min="10000" step="1000" required />
+          </label>
+          <label>Interest (Annual %)
+            <input type="number" id="loanRate" value="9" min="1" step="0.1" required />
+          </label>
+          <label>Tenure (Months)
+            <input type="number" id="loanTenure" value="60" min="6" step="6" required />
+          </label>
+          <button type="submit" class="btn wide">Calculate EMI</button>
+        </form>
+        <div class="emi-result">
+          <div class="kpi"><span id="emiVal">₹ 0</span><small>Monthly EMI</small></div>
+          <div class="kpi"><span id="totalInt">₹ 0</span><small>Total Interest</small></div>
+          <div class="kpi"><span id="totalPay">₹ 0</span><small>Total Payment</small></div>
+        </div>
+        <canvas id="emiChart" width="720" height="300" aria-label="EMI vs Principal chart"></canvas>
+      </section>
+
+      <section class="section">
+        <h2>Sample Loan Options</h2>
+        <div class="table-wrap">
+          <table class="table">
+            <thead>
+              <tr><th>Bank</th><th>Interest %</th><th>Processing Fee</th><th>Max Tenure</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>Bank A</td><td>8.75</td><td>₹3,000</td><td>84 months</td></tr>
+              <tr><td>Bank B</td><td>9.10</td><td>₹2,500</td><td>72 months</td></tr>
+              <tr><td>Bank C</td><td>9.50</td><td>₹2,000</td><td>60 months</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </section>
+
+    <!-- TRUE VALUE -->
+    <section id="truevalue" class="page">
+      <section class="section">
+        <h1>True Value Advantages</h1>
+        <p>
+          India’s pre-owned car market is growing and maturing in tandem, and Maruti Suzuki True Value is at the forefront.
+          Since 2001, True Value has expanded via a network of 558+ outlets across 279 cities — a marketplace of choice for
+          pre-owned car buyers and sellers, with high-quality cars evaluated on 376 checkpoints, transparent pricing, and
+          convenient processes.
+        </p>
+      </section>
+
+      <section class="section steps">
+        <h2>How It Works</h2>
+        <ol>
+          <li><strong>Digital Evaluation</strong> — 376-point checks, background & document verification.</li>
+          <li><strong>Fair Pricing</strong> — Data-driven offers across multiple brands.</li>
+          <li><strong>Ownership Transfer</strong> — Insurance, finance, and accessories under one roof.</li>
+        </ol>
+      </section>
+
+      <section class="section">
+        <h2>New vs True Value</h2>
+        <div class="table-wrap">
+          <table class="table">
+            <thead><tr><th>Feature</th><th>New Car</th><th>True Value Car</th></tr></thead>
+            <tbody>
+              <tr><td>Upfront Cost</td><td>Higher</td><td>Lower</td></tr>
+              <tr><td>Depreciation</td><td>Higher in first 3 years</td><td>Lower</td></tr>
+              <tr><td>Quality Checks</td><td>—</td><td>376-point evaluation</td></tr>
+              <tr><td>Ownership Transfer</td><td>—</td><td>Assisted end-to-end</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+      <div class="testimonial">
+        <blockquote>
+          “Bought a certified Brezza from True Value. Transparent process and great after-sales support!”
+        </blockquote>
+        <cite>— A happy True Value customer</cite>
+      </div>
+      </section>
+    </section>
+
+    <!-- ✅ AUTH (merged Login + Signup) -->
+    <section id="auth" class="page">
+      <section class="section">
+        <h1>Account</h1>
+        <div class="auth-toggle">
+          <button type="button" id="showLogin" class="btn tab active">Login</button>
+          <button type="button" id="showSignup" class="btn tab">Signup</button>
+        </div>
+
+        <!-- Login -->
+        <form id="loginForm" class="form grid-2">
+          <label>Username
+            <input type="text" id="loginUser" required />
+          </label>
+          <label>Password
+            <input type="password" id="loginPass" required />
+          </label>
+          <button type="submit" class="btn wide">Login</button>
+          <p id="loginMsg" class="msg"></p>
+        </form>
+
+        <!-- Signup -->
+        <form id="signupForm" class="form grid-2" style="display:none">
+          <label>Name
+            <input type="text" id="signupName" required />
+          </label>
+          <label>Email
+            <input type="email" id="signupEmail" required />
+          </label>
+          <label>Username
+            <input type="text" id="signupUser" required />
+          </label>
+          <label>Password
+            <input type="password" id="signupPass" minlength="4" required />
+          </label>
+          <button type="submit" class="btn wide">Sign Up</button>
+          <p id="signupMsg" class="msg"></p>
+        </form>
+      </section>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <p>© 2025 Maruti Suzuki (Demo Portal)</p>
+  </footer>
+
+  <!-- ✅ JS lives in a separate file -->
+  <script src="script.js"></script>
+</body>
+</html>
